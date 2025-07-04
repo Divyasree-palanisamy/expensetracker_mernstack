@@ -1,204 +1,132 @@
-# Task Manager - MERN Stack Application
+# Personal Finance Dashboard - MERN Stack Application
 
-A comprehensive task management application built with the MERN (MongoDB, Express.js, React.js, Node.js) stack. This application provides a modern, responsive interface for managing tasks with features like user authentication, task categorization, priority management, and real-time updates.
+A modern personal finance dashboard built with the MERN (MongoDB, Express.js, React.js, Node.js) stack. This application helps users manage their budgets, track transactions, set savings goals, monitor moods, and participate in financial challenges—all in one place.
 
 ## 🚀 Features
 
 ### Authentication & User Management
 - User registration and login with JWT authentication
-- Secure password hashing with bcrypt
+- Secure password hashing
 - User profile management
-- Role-based access control
 
-### Task Management
-- Create, read, update, and delete tasks
-- Task categorization (Work, Personal, Shopping, Health, Education, Other)
-- Priority levels (Low, Medium, High, Urgent)
-- Task status tracking (Pending, In Progress, Completed, Cancelled)
-- Due date management
-- Task tagging system
-- Mark tasks as important
+### Budget & Transaction Management
+- Create, view, update, and delete budgets
+- Add, edit, and delete transactions
+- Categorize transactions (Food, Rent, Utilities, etc.)
+- View transaction history and summaries
 
-### Dashboard & Analytics
-- Overview statistics (Total tasks, completion rate, etc.)
-- Recent tasks display
-- Category distribution charts
-- Task filtering and search
-- Pagination support
+### Savings Goals
+- Set and track savings goals
+- Visual progress indicators
+
+### Mood Tracking
+- Log daily moods
+- View mood history and trends
+
+### Financial Challenges
+- Participate in savings or spending challenges
+- Track challenge progress
+
+### Dashboard & Insights
+- Overview of budgets, transactions, and goals
+- Recent activity and statistics
+- Visual charts and summaries
 
 ### User Interface
-- Modern, responsive design
-- Mobile-friendly interface
-- Real-time notifications with toast messages
-- Loading states and error handling
-- Form validation
-- Interactive task cards
+- Responsive, modern design
+- Mobile-friendly
+- Real-time notifications and error handling
 
 ## 🛠️ Tech Stack
 
 ### Backend
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **MongoDB** - Database
-- **Mongoose** - ODM for MongoDB
-- **JWT** - Authentication
-- **bcryptjs** - Password hashing
-- **express-validator** - Input validation
-- **cors** - Cross-origin resource sharing
-- **helmet** - Security middleware
-- **morgan** - HTTP request logger
+- **Node.js**
+- **Express.js**
+- **MongoDB**
+- **Mongoose**
+- **JWT** for authentication
+- **bcryptjs** for password hashing
+- **cors**, **helmet**, **morgan** for security and logging
 
 ### Frontend
-- **React.js** - UI library
-- **React Router** - Client-side routing
-- **Axios** - HTTP client
-- **React Hot Toast** - Notifications
-- **React Icons** - Icon library
-- **date-fns** - Date manipulation
-- **CSS3** - Styling with custom utility classes
+- **React.js**
+- **React Router**
+- **Axios**
+- **Material-UI** for UI components
+- **React Hot Toast** for notifications
 
 ## 📋 Prerequisites
-
-Before running this application, make sure you have the following installed:
-
 - **Node.js** (v14 or higher)
 - **npm** or **yarn**
-- **MongoDB** (local installation or MongoDB Atlas account)
+- **MongoDB** (local or Atlas)
 
 ## 🚀 Installation & Setup
 
 ### 1. Clone the Repository
-
 ```bash
-git clone <repository-url>
-cd mern-task-manager
+git clone https://github.com/Divyasree-palanisamy/budget_calc_mern_project.git
+cd budget_calc_mern_project
 ```
 
 ### 2. Install Dependencies
-
-Install all dependencies for both backend and frontend:
-
 ```bash
-# Install root dependencies
-npm install
-
-# Install backend dependencies
+# Backend
 cd backend
 npm install
 
-# Install frontend dependencies
+# Frontend
 cd ../frontend
 npm install
-
-# Return to root directory
-cd ..
 ```
 
 ### 3. Environment Configuration
-
-Create environment files for the backend:
-
-```bash
-# In the backend directory
-cd backend
-```
-
-Create a file named `config.env` with the following content:
-
+Create a `.env` file in the `backend` directory:
 ```env
-MONGODB_URI=mongodb://localhost:27017/task-manager
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+MONGO_URI=mongodb://localhost:27017/finance-dashboard
+JWT_SECRET=your-secret-key
 PORT=5000
-NODE_ENV=development
 ```
 
-**Note:** Replace `your-super-secret-jwt-key-change-this-in-production` with a strong secret key for production use.
-
-### 4. Database Setup
-
-Make sure MongoDB is running on your system. If you're using MongoDB Atlas, update the `MONGODB_URI` in your environment file.
-
-### 5. Start the Application
-
-#### Development Mode (Recommended)
-
-Run both backend and frontend concurrently:
-
-```bash
-# From the root directory
-npm run dev
-```
-
-This will start:
-- Backend server on `http://localhost:5000`
-- Frontend development server on `http://localhost:3000`
-
-#### Production Mode
-
-Build and start the application:
-
-```bash
-# Build the frontend
-npm run build
-
-# Start the production server
-npm start
-```
+### 4. Start the Application
+- **Backend:**
+  ```bash
+  cd backend
+  npm start
+  ```
+- **Frontend:**
+  ```bash
+  cd frontend
+  npm start
+  ```
 
 ## 📱 Usage
+- Register or log in to your account
+- Add budgets and transactions
+- Set and track savings goals
+- Log your daily mood
+- Join and monitor financial challenges
+- View your dashboard for insights and summaries
 
-### 1. User Registration
-- Navigate to the registration page
-- Fill in your name, email, and password
-- Click "Create Account"
-
-### 2. User Login
-- Use your registered email and password
-- Click "Sign In"
-
-### 3. Dashboard
-- View task statistics and recent tasks
-- Quick access to create new tasks
-- Overview of task categories
-
-### 4. Task Management
-- **Create Tasks**: Click "New Task" button
-- **View Tasks**: Navigate to the Tasks page
-- **Edit Tasks**: Click the edit icon on any task
-- **Delete Tasks**: Click the delete icon (with confirmation)
-- **Filter Tasks**: Use the search and filter options
-
-### 5. Profile Management
-- Update your profile information
-- Change your avatar URL
-- View account statistics
-
-## 🔧 API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/me` - Get current user profile
-- `PUT /api/auth/profile` - Update user profile
-
-### Tasks
-- `GET /api/tasks` - Get all tasks (with filtering and pagination)
-- `POST /api/tasks` - Create a new task
-- `GET /api/tasks/:id` - Get a specific task
-- `PUT /api/tasks/:id` - Update a task
-- `DELETE /api/tasks/:id` - Delete a task
-- `GET /api/tasks/stats/overview` - Get task statistics
+## 🔧 API Endpoints (Sample)
+- `POST /api/auth/register` - Register user
+- `POST /api/auth/login` - Login user
+- `GET /api/transactions` - List transactions
+- `POST /api/transactions` - Add transaction
+- `GET /api/budgets` - List budgets
+- `POST /api/budgets` - Add budget
+- `GET /api/goals` - List savings goals
+- `POST /api/goals` - Add savings goal
+- `GET /api/moods` - List mood entries
+- `POST /api/moods` - Add mood entry
+- `GET /api/challenges` - List challenges
+- `POST /api/challenges` - Join challenge
 
 ## 🎨 Customization
+- Edit styles in `frontend/src/App.css` and `frontend/src/index.css`
+- Update backend configuration in `backend/.env`
 
-### Styling
-The application uses custom CSS utility classes. You can modify the styles in:
-- `frontend/src/index.css` - Global styles
-- `frontend/src/App.css` - Component-specific styles
-
-### Configuration
-- Backend configuration: `backend/config.env`
-- Frontend proxy: `frontend/package.json` (proxy field)
+## 📄 License
+This project is for educational and personal use.
 
 ## 🚀 Deployment
 
