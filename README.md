@@ -189,4 +189,4 @@ If you encounter any issues or have questions, please:
 
 ---
 
-**Happy Task Managing! 🎉** 
+**Happy Budget Managing! 🎉** 
