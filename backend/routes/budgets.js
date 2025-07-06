@@ -1,47 +1,38 @@
 const express = require('express');
 const router = express.Router();
-const Budget = require('../models/Budget');
+const { auth } = require('../middleware/auth');
+const {
+    getBudgets,
+    getBudgetById,
+    createBudget,
+    updateBudget,
+    deleteBudget,
+    getBudgetProgress,
+    getBudgetsWithProgress
+} = require('../controllers/budgetController');
 
-// Get all budgets for a user
-router.get('/', async (req, res) => {
-    try {
-        const userId = req.query.userId;
-        const budgets = await Budget.find({ userId });
-        res.json(budgets);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+// All routes require authentication
+router.use(auth);
 
-// Add a new budget
-router.post('/', async (req, res) => {
-    try {
-        const budget = new Budget(req.body);
-        await budget.save();
-        res.status(201).json(budget);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-});
+// Get all budgets
+router.get('/', getBudgets);
 
-// Update a budget
-router.put('/:id', async (req, res) => {
-    try {
-        const updated = await Budget.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.json(updated);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-});
+// Get all budgets with progress
+router.get('/with-progress', getBudgetsWithProgress);
 
-// Delete a budget
-router.delete('/:id', async (req, res) => {
-    try {
-        await Budget.findByIdAndDelete(req.params.id);
-        res.json({ message: 'Budget deleted' });
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
-});
+// Get single budget
+router.get('/:id', getBudgetById);
+
+// Get budget progress
+router.get('/:id/progress', getBudgetProgress);
+
+// Create new budget
+router.post('/', createBudget);
+
+// Update budget
+router.put('/:id', updateBudget);
+
+// Delete budget
+router.delete('/:id', deleteBudget);
 
 module.exports = router; 

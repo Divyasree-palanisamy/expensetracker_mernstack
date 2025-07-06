@@ -1,221 +1,480 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import {
+    Container,
+    Typography,
+    Grid,
+    Paper,
+    Box,
+    Button,
+    TextField,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    IconButton,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Chip,
+    Alert,
+    LinearProgress
+} from '@mui/material';
+import {
+    Add as AddIcon,
+    Edit as EditIcon,
+    Delete as DeleteIcon,
+    FilterList as FilterIcon,
+    Search as SearchIcon
+} from '@mui/icons-material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import axios from 'axios';
-import { useAuth } from '../contexts/AuthContext';
-import { Container, Typography, Box, Paper, TextField, Button, Grid, MenuItem, IconButton } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
+import toast from 'react-hot-toast';
 
-const initialForm = {
-    amount: '',
-    type: 'expense',
-    category: '',
-    date: '',
-    description: '',
-};
-
-const categoryOptions = [
-    'Food', 'Rent', 'Utilities', 'Transport', 'Shopping', 'Salary', 'Other'
+const categories = [
+    'Food & Dining',
+    'Transportation',
+    'Housing',
+    'Utilities',
+    'Entertainment',
+    'Shopping',
+    'Healthcare',
+    'Education',
+    'Travel',
+    'Other'
 ];
 
+const TransactionForm = ({ open, onClose, transaction, onSubmit }) => {
+    const [formData, setFormData] = useState({
+        amount: '',
+        type: 'expense',
+        category: '',
+        description: '',
+        date: new Date(),
+        isRecurring: false
+    });
+
+    useEffect(() => {
+        if (transaction) {
+            setFormData({
+                amount: transaction.amount.toString(),
+                type: transaction.type,
+                category: transaction.category,
+                description: transaction.description || '',
+                date: new Date(transaction.date),
+                isRecurring: transaction.isRecurring || false
+            });
+        } else {
+            setFormData({
+                amount: '',
+                type: 'expense',
+                category: '',
+                description: '',
+                date: new Date(),
+                isRecurring: false
+            });
+        }
+    }, [transaction]);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!formData.amount || !formData.category) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
+        onSubmit(formData);
+    };
+
+    return (
+        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+            <DialogTitle sx={{ bgcolor: '#222', color: '#00BFFF' }}>
+                {transaction ? 'Edit Transaction' : 'Add New Transaction'}
+            </DialogTitle>
+            <DialogContent sx={{ bgcolor: '#222', pt: 2 }}>
+                <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                fullWidth
+                                label="Amount"
+                                type="number"
+                                value={formData.amount}
+                                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        color: '#ccc',
+                                        '& fieldset': { borderColor: '#333' },
+                                        '&:hover fieldset': { borderColor: '#00BFFF' }
+                                    },
+                                    '& .MuiInputLabel-root': { color: '#ccc' }
+                                }}
+                                required
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <FormControl fullWidth>
+                                <InputLabel sx={{ color: '#ccc' }}>Type</InputLabel>
+                                <Select
+                                    value={formData.type}
+                                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                                    sx={{
+                                        color: '#ccc',
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333' },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00BFFF' }
+                                    }}
+                                >
+                                    <MenuItem value="expense">Expense</MenuItem>
+                                    <MenuItem value="income">Income</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <FormControl fullWidth>
+                                <InputLabel sx={{ color: '#ccc' }}>Category</InputLabel>
+                                <Select
+                                    value={formData.category}
+                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                    sx={{
+                                        color: '#ccc',
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333' },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00BFFF' }
+                                    }}
+                                    required
+                                >
+                                    {categories.map((category) => (
+                                        <MenuItem key={category} value={category}>
+                                            {category}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <TextField
+                                fullWidth
+                                label="Description"
+                                value={formData.description}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        color: '#ccc',
+                                        '& fieldset': { borderColor: '#333' },
+                                        '&:hover fieldset': { borderColor: '#00BFFF' }
+                                    },
+                                    '& .MuiInputLabel-root': { color: '#ccc' }
+                                }}
+                            />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                <DatePicker
+                                    label="Date"
+                                    value={formData.date}
+                                    onChange={(newValue) => setFormData({ ...formData, date: newValue })}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            fullWidth
+                                            sx={{
+                                                '& .MuiOutlinedInput-root': {
+                                                    color: '#ccc',
+                                                    '& fieldset': { borderColor: '#333' },
+                                                    '&:hover fieldset': { borderColor: '#00BFFF' }
+                                                },
+                                                '& .MuiInputLabel-root': { color: '#ccc' }
+                                            }}
+                                        />
+                                    )}
+                                />
+                            </LocalizationProvider>
+                        </Grid>
+                    </Grid>
+                </Box>
+            </DialogContent>
+            <DialogActions sx={{ bgcolor: '#222' }}>
+                <Button onClick={onClose} sx={{ color: '#ccc' }}>
+                    Cancel
+                </Button>
+                <Button onClick={handleSubmit} variant="contained" sx={{ bgcolor: '#00BFFF' }}>
+                    {transaction ? 'Update' : 'Add'}
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
+};
+
 const Transactions = () => {
-    const { user, loading } = useAuth();
     const [transactions, setTransactions] = useState([]);
-    const [form, setForm] = useState(initialForm);
-    const [editingId, setEditingId] = useState(null);
-    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [editingTransaction, setEditingTransaction] = useState(null);
+    const [filters, setFilters] = useState({
+        type: '',
+        category: '',
+        search: ''
+    });
 
     const fetchTransactions = async () => {
-        if (!user) return;
         try {
-            const res = await axios.get(`/api/transactions`);
-            setTransactions(res.data);
-        } catch (err) {
-            setError('Failed to fetch transactions');
+            setLoading(true);
+            const response = await axios.get('/api/transactions');
+            setTransactions(response.data);
+        } catch (error) {
+            console.error('Error fetching transactions:', error);
+            toast.error('Failed to load transactions');
+        } finally {
+            setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (!loading && user && localStorage.getItem('token')) {
-            fetchTransactions();
-        }
-    }, [user, loading]);
+        fetchTransactions();
+    }, []);
 
-    const handleChange = e => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = async e => {
-        e.preventDefault();
-        setError('');
+    const handleSubmit = async (formData) => {
         try {
-            // Ensure amount is a number and date is set
-            const payload = {
-                amount: Number(form.amount),
-                type: form.type,
-                category: form.category,
-                date: form.date ? new Date(form.date) : new Date(),
-                description: form.description,
-            };
-            if (editingId) {
-                await axios.put(`/api/transactions/${editingId}`, payload);
+            if (editingTransaction) {
+                await axios.put(`/api/transactions/${editingTransaction._id}`, formData);
+                toast.success('Transaction updated successfully');
             } else {
-                await axios.post('/api/transactions', payload);
+                await axios.post('/api/transactions', formData);
+                toast.success('Transaction added successfully');
             }
-            setForm(initialForm);
-            setEditingId(null);
+            setDialogOpen(false);
+            setEditingTransaction(null);
             fetchTransactions();
-        } catch (err) {
-            const backendMsg = err.response?.data?.error || err.response?.data?.message;
-            setError(backendMsg || 'Failed to save transaction');
+        } catch (error) {
+            console.error('Error saving transaction:', error);
+            toast.error('Failed to save transaction');
         }
     };
 
-    const handleEdit = tx => {
-        setForm({
-            amount: tx.amount,
-            type: tx.type,
-            category: tx.category,
-            date: tx.date ? tx.date.substring(0, 10) : '',
-            description: tx.description || '',
-        });
-        setEditingId(tx._id);
-    };
-
-    const handleDelete = async id => {
-        try {
-            await axios.delete(`/api/transactions/${id}`);
-            fetchTransactions();
-        } catch (err) {
-            setError('Failed to delete transaction');
+    const handleDelete = async (id) => {
+        if (window.confirm('Are you sure you want to delete this transaction?')) {
+            try {
+                await axios.delete(`/api/transactions/${id}`);
+                toast.success('Transaction deleted successfully');
+                fetchTransactions();
+            } catch (error) {
+                console.error('Error deleting transaction:', error);
+                toast.error('Failed to delete transaction');
+            }
         }
     };
 
-    if (loading) return <div>Loading...</div>;
-    if (!user) return <div>Please log in to add transactions.</div>;
+    const handleEdit = (transaction) => {
+        setEditingTransaction(transaction);
+        setDialogOpen(true);
+    };
+
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD'
+        }).format(amount);
+    };
+
+    const filteredTransactions = transactions.filter(transaction => {
+        const matchesType = !filters.type || transaction.type === filters.type;
+        const matchesCategory = !filters.category || transaction.category === filters.category;
+        const matchesSearch = !filters.search ||
+            transaction.description?.toLowerCase().includes(filters.search.toLowerCase()) ||
+            transaction.category.toLowerCase().includes(filters.search.toLowerCase());
+
+        return matchesType && matchesCategory && matchesSearch;
+    });
+
+    if (loading) {
+        return (
+            <Box sx={{ bgcolor: '#181818', minHeight: '100vh', py: 6 }}>
+                <Container maxWidth="lg">
+                    <LinearProgress sx={{ bgcolor: '#333', '& .MuiLinearProgress-bar': { bgcolor: '#00BFFF' } }} />
+                </Container>
+            </Box>
+        );
+    }
 
     return (
         <Box sx={{ bgcolor: '#181818', minHeight: '100vh', py: 6 }}>
-            <Container maxWidth="md">
-                <Typography variant="h4" color="#00BFFF" gutterBottom sx={{ fontWeight: 'bold', textAlign: 'center' }}>
-                    Transactions
-                </Typography>
-                <Paper elevation={4} sx={{ bgcolor: '#222', p: 3, borderRadius: 2, mb: 4 }}>
-                    <Typography variant="h6" color="#fff" gutterBottom>
-                        {editingId ? 'Edit Transaction' : 'Add Transaction'}
+            <Container maxWidth="lg">
+                {/* Header */}
+                <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="h3" color="primary" sx={{ fontWeight: 'bold' }}>
+                        Transactions
                     </Typography>
-                    <form onSubmit={handleSubmit}>
-                        <Grid container spacing={2}>
-                            <Grid item xs={12} sm={4}>
-                                <TextField
-                                    label="Amount"
-                                    name="amount"
-                                    type="number"
-                                    value={form.amount}
-                                    onChange={handleChange}
-                                    fullWidth
-                                    required
-                                    InputLabelProps={{ style: { color: '#ccc' } }}
-                                    InputProps={{ style: { color: '#fff' } }}
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                                <TextField
-                                    select
-                                    label="Type"
-                                    name="type"
-                                    value={form.type}
-                                    onChange={handleChange}
-                                    fullWidth
-                                    required
-                                    InputLabelProps={{ style: { color: '#ccc' } }}
-                                    InputProps={{ style: { color: '#fff' } }}
-                                >
-                                    <MenuItem value="expense">Expense</MenuItem>
-                                    <MenuItem value="income">Income</MenuItem>
-                                </TextField>
-                            </Grid>
-                            <Grid item xs={12} sm={4}>
-                                <TextField
-                                    select
-                                    label="Category"
-                                    name="category"
-                                    value={form.category}
-                                    onChange={handleChange}
-                                    fullWidth
-                                    required
-                                    InputLabelProps={{ style: { color: '#ccc' } }}
-                                    InputProps={{ style: { color: '#fff' } }}
-                                >
-                                    {categoryOptions.map(opt => (
-                                        <MenuItem key={opt} value={opt}>{opt}</MenuItem>
-                                    ))}
-                                </TextField>
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    label="Date"
-                                    name="date"
-                                    type="date"
-                                    value={form.date}
-                                    onChange={handleChange}
-                                    fullWidth
-                                    required
-                                    InputLabelProps={{ shrink: true, style: { color: '#ccc' } }}
-                                    InputProps={{ style: { color: '#fff' } }}
-                                />
-                            </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <TextField
-                                    label="Description"
-                                    name="description"
-                                    value={form.description}
-                                    onChange={handleChange}
-                                    fullWidth
-                                    InputLabelProps={{ style: { color: '#ccc' } }}
-                                    InputProps={{ style: { color: '#fff' } }}
-                                />
-                            </Grid>
-                        </Grid>
-                        {error && <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>}
-                        <Button type="submit" variant="contained" color="primary" sx={{ mt: 3, fontWeight: 'bold' }}>
-                            {editingId ? 'Update' : 'Add'} Transaction
-                        </Button>
-                        {editingId && (
-                            <Button onClick={() => { setForm(initialForm); setEditingId(null); }} sx={{ mt: 3, ml: 2 }}>
-                                Cancel
-                            </Button>
-                        )}
-                    </form>
-                </Paper>
-                <Typography variant="h6" color="#fff" gutterBottom>
-                    Your Transactions
-                </Typography>
-                {transactions.length === 0 ? (
-                    <Typography color="#ccc">No transactions found.</Typography>
-                ) : (
+                    <Button
+                        variant="contained"
+                        startIcon={<AddIcon />}
+                        onClick={() => setDialogOpen(true)}
+                        sx={{ bgcolor: '#00BFFF', '&:hover': { bgcolor: '#0099CC' } }}
+                    >
+                        Add Transaction
+                    </Button>
+                </Box>
+
+                {/* Filters */}
+                <Paper elevation={4} sx={{ bgcolor: '#222', p: 3, mb: 3, borderRadius: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <FilterIcon sx={{ color: '#00BFFF', mr: 1 }} />
+                        <Typography variant="h6" color="#ccc">Filters</Typography>
+                    </Box>
                     <Grid container spacing={2}>
-                        {transactions.map(tx => (
-                            <Grid item xs={12} key={tx._id}>
-                                <Paper sx={{ bgcolor: '#222', p: 2, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                    <Box>
-                                        <Typography color="#00BFFF" fontWeight="bold">{tx.category}</Typography>
-                                        <Typography color="#fff">{tx.type === 'income' ? '+' : '-'}₹{tx.amount}</Typography>
-                                        <Typography color="#ccc" fontSize={14}>{tx.date ? new Date(tx.date).toLocaleDateString() : ''}</Typography>
-                                        {tx.description && <Typography color="#ccc" fontSize={14}>{tx.description}</Typography>}
-                                    </Box>
-                                    <Box>
-                                        <IconButton onClick={() => handleEdit(tx)} color="primary">
-                                            <EditIcon />
-                                        </IconButton>
-                                        <IconButton onClick={() => handleDelete(tx._id)} color="error">
-                                            <DeleteIcon />
-                                        </IconButton>
-                                    </Box>
-                                </Paper>
-                            </Grid>
-                        ))}
+                        <Grid item xs={12} sm={4}>
+                            <TextField
+                                fullWidth
+                                placeholder="Search transactions..."
+                                value={filters.search}
+                                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                                InputProps={{
+                                    startAdornment: <SearchIcon sx={{ color: '#666', mr: 1 }} />
+                                }}
+                                sx={{
+                                    '& .MuiOutlinedInput-root': {
+                                        color: '#ccc',
+                                        '& fieldset': { borderColor: '#333' },
+                                        '&:hover fieldset': { borderColor: '#00BFFF' }
+                                    }
+                                }}
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                            <FormControl fullWidth>
+                                <InputLabel sx={{ color: '#ccc' }}>Type</InputLabel>
+                                <Select
+                                    value={filters.type}
+                                    onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+                                    sx={{
+                                        color: '#ccc',
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333' }
+                                    }}
+                                >
+                                    <MenuItem value="">All Types</MenuItem>
+                                    <MenuItem value="income">Income</MenuItem>
+                                    <MenuItem value="expense">Expense</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                            <FormControl fullWidth>
+                                <InputLabel sx={{ color: '#ccc' }}>Category</InputLabel>
+                                <Select
+                                    value={filters.category}
+                                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                                    sx={{
+                                        color: '#ccc',
+                                        '& .MuiOutlinedInput-notchedOutline': { borderColor: '#333' }
+                                    }}
+                                >
+                                    <MenuItem value="">All Categories</MenuItem>
+                                    {categories.map((category) => (
+                                        <MenuItem key={category} value={category}>
+                                            {category}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
                     </Grid>
-                )}
+                </Paper>
+
+                {/* Transactions Table */}
+                <Paper elevation={4} sx={{ bgcolor: '#222', borderRadius: 2 }}>
+                    <TableContainer>
+                        <Table>
+                            <TableHead>
+                                <TableRow sx={{ bgcolor: '#333' }}>
+                                    <TableCell sx={{ color: '#00BFFF', fontWeight: 'bold' }}>Date</TableCell>
+                                    <TableCell sx={{ color: '#00BFFF', fontWeight: 'bold' }}>Description</TableCell>
+                                    <TableCell sx={{ color: '#00BFFF', fontWeight: 'bold' }}>Category</TableCell>
+                                    <TableCell sx={{ color: '#00BFFF', fontWeight: 'bold' }}>Type</TableCell>
+                                    <TableCell sx={{ color: '#00BFFF', fontWeight: 'bold' }}>Amount</TableCell>
+                                    <TableCell sx={{ color: '#00BFFF', fontWeight: 'bold' }}>Actions</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {filteredTransactions.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} sx={{ textAlign: 'center', color: '#666', py: 4 }}>
+                                            No transactions found
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    filteredTransactions.map((transaction) => (
+                                        <TableRow key={transaction._id} sx={{ '&:hover': { bgcolor: '#333' } }}>
+                                            <TableCell sx={{ color: '#ccc' }}>
+                                                {new Date(transaction.date).toLocaleDateString()}
+                                            </TableCell>
+                                            <TableCell sx={{ color: '#ccc' }}>
+                                                {transaction.description || 'No description'}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Chip
+                                                    label={transaction.category}
+                                                    size="small"
+                                                    sx={{
+                                                        bgcolor: '#444',
+                                                        color: '#ccc',
+                                                        fontSize: '0.7rem'
+                                                    }}
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Chip
+                                                    label={transaction.type}
+                                                    size="small"
+                                                    sx={{
+                                                        bgcolor: transaction.type === 'income' ? '#4CAF50' : '#F44336',
+                                                        color: '#fff',
+                                                        fontSize: '0.7rem'
+                                                    }}
+                                                />
+                                            </TableCell>
+                                            <TableCell sx={{
+                                                color: transaction.type === 'income' ? '#4CAF50' : '#F44336',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                                            </TableCell>
+                                            <TableCell>
+                                                <IconButton
+                                                    onClick={() => handleEdit(transaction)}
+                                                    sx={{ color: '#00BFFF', mr: 1 }}
+                                                >
+                                                    <EditIcon />
+                                                </IconButton>
+                                                <IconButton
+                                                    onClick={() => handleDelete(transaction._id)}
+                                                    sx={{ color: '#F44336' }}
+                                                >
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Paper>
+
+                {/* Transaction Form Dialog */}
+                <TransactionForm
+                    open={dialogOpen}
+                    onClose={() => {
+                        setDialogOpen(false);
+                        setEditingTransaction(null);
+                    }}
+                    transaction={editingTransaction}
+                    onSubmit={handleSubmit}
+                />
             </Container>
         </Box>
     );
