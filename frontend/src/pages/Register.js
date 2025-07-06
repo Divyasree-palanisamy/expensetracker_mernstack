@@ -1,84 +1,184 @@
 import React, { useState } from 'react';
-import { TextField, Button, Paper, Typography, Box, Container } from '@mui/material';
-import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 
 const Register = () => {
-    const [form, setForm] = useState({ email: '', password: '', name: '' });
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: ''
+    });
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const { register } = useAuth();
     const navigate = useNavigate();
 
-    const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value });
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
 
-    const handleSubmit = async e => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         setError('');
-        try {
-            await axios.post('/api/auth/register', form);
-            navigate('/login');
-        } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed');
+
+        if (formData.password !== formData.confirmPassword) {
+            setError('Passwords do not match');
+            setLoading(false);
+            return;
         }
+
+        if (formData.password.length < 6) {
+            setError('Password must be at least 6 characters long');
+            setLoading(false);
+            return;
+        }
+
+        const result = await register(formData.name, formData.email, formData.password);
+
+        if (result.success) {
+            navigate('/');
+        } else {
+            setError(result.message);
+        }
+
+        setLoading(false);
     };
 
     return (
-        <Box sx={{ bgcolor: '#181818', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Container maxWidth="xs">
-                <Paper elevation={6} sx={{ p: 4, bgcolor: '#222', borderRadius: 2 }}>
-                    <Typography variant="h4" color="#00BFFF" gutterBottom align="center" sx={{ fontWeight: 'bold' }}>
-                        Register
-                    </Typography>
-                    <form onSubmit={handleSubmit}>
-                        <TextField
-                            label="Name"
-                            name="name"
-                            fullWidth
-                            margin="normal"
-                            value={form.name}
-                            onChange={handleChange}
-                            required
-                            InputLabelProps={{ style: { color: '#ccc' } }}
-                            InputProps={{ style: { color: '#fff' } }}
-                        />
-                        <TextField
-                            label="Email"
-                            name="email"
-                            type="email"
-                            fullWidth
-                            margin="normal"
-                            value={form.email}
-                            onChange={handleChange}
-                            required
-                            InputLabelProps={{ style: { color: '#ccc' } }}
-                            InputProps={{ style: { color: '#fff' } }}
-                        />
-                        <TextField
-                            label="Password"
-                            name="password"
-                            type="password"
-                            fullWidth
-                            margin="normal"
-                            value={form.password}
-                            onChange={handleChange}
-                            required
-                            InputLabelProps={{ style: { color: '#ccc' } }}
-                            InputProps={{ style: { color: '#fff' } }}
-                        />
-                        {error && <Typography color="error" sx={{ mt: 1 }}>{error}</Typography>}
-                        <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 3, fontWeight: 'bold' }}>
-                            Register
-                        </Button>
+        <div className="container">
+            <div className="auth-container">
+                <div className="auth-card">
+                    <div className="auth-header">
+                        <h1>Create Account</h1>
+                        <p>Sign up to start tracking your expenses</p>
+                    </div>
+
+                    {error && (
+                        <div className="alert alert-error">
+                            {error}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="auth-form">
+                        <div className="form-group">
+                            <label htmlFor="name" className="form-label">
+                                Full Name
+                            </label>
+                            <div className="input-group">
+                                <FiUser className="input-icon" />
+                                <input
+                                    type="text"
+                                    id="name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className="form-input"
+                                    placeholder="Enter your full name"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="email" className="form-label">
+                                Email Address
+                            </label>
+                            <div className="input-group">
+                                <FiMail className="input-icon" />
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className="form-input"
+                                    placeholder="Enter your email"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="password" className="form-label">
+                                Password
+                            </label>
+                            <div className="input-group">
+                                <FiLock className="input-icon" />
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    id="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    className="form-input"
+                                    placeholder="Enter your password"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    className="password-toggle"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? <FiEyeOff /> : <FiEye />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label htmlFor="confirmPassword" className="form-label">
+                                Confirm Password
+                            </label>
+                            <div className="input-group">
+                                <FiLock className="input-icon" />
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    id="confirmPassword"
+                                    name="confirmPassword"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    className="form-input"
+                                    placeholder="Confirm your password"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    className="password-toggle"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                >
+                                    {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="btn btn-primary btn-block"
+                            disabled={loading}
+                        >
+                            {loading ? 'Creating account...' : 'Create Account'}
+                        </button>
                     </form>
-                    <Typography variant="body2" sx={{ mt: 3, textAlign: 'center', color: '#ccc' }}>
-                        Already have an account?{' '}
-                        <Link to="/login" style={{ color: '#00BFFF', textDecoration: 'underline' }}>
-                            Login
-                        </Link>
-                    </Typography>
-                </Paper>
-            </Container>
-        </Box>
+
+                    <div className="auth-footer">
+                        <p>
+                            Already have an account?{' '}
+                            <Link to="/login" className="auth-link">
+                                Sign in here
+                            </Link>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 
-export default Register;
+export default Register; 

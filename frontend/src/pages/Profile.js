@@ -1,17 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { FiUser, FiMail, FiSave, FiCamera } from 'react-icons/fi';
-import toast from 'react-hot-toast';
+import { FiUser, FiMail, FiDollarSign, FiSave, FiShield } from 'react-icons/fi';
 
 const Profile = () => {
     const { user, updateProfile } = useAuth();
-    const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState({});
-
     const [formData, setFormData] = useState({
-        name: user?.name || '',
-        avatar: user?.avatar || ''
+        name: '',
+        currency: 'INR',
+        monthlyBudget: ''
     });
+    const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState('');
+    const [error, setError] = useState('');
+
+    const currencies = [
+        { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
+        { code: 'USD', symbol: '$', name: 'US Dollar' },
+        { code: 'EUR', symbol: '€', name: 'Euro' },
+        { code: 'GBP', symbol: '£', name: 'British Pound' },
+        { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
+        { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
+        { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
+        { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc' },
+        { code: 'CNY', symbol: '¥', name: 'Chinese Yuan' }
+    ];
+
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                name: user.name || '',
+                currency: user.currency || 'INR',
+                monthlyBudget: user.monthlyBudget ? user.monthlyBudget.toString() : ''
+            });
+        }
+    }, [user]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -19,229 +41,226 @@ const Profile = () => {
             ...prev,
             [name]: value
         }));
-
-        // Clear error when user starts typing
-        if (errors[name]) {
-            setErrors(prev => ({
-                ...prev,
-                [name]: ''
-            }));
-        }
-    };
-
-    const validateForm = () => {
-        const newErrors = {};
-
-        if (!formData.name.trim()) {
-            newErrors.name = 'Name is required';
-        } else if (formData.name.length < 2) {
-            newErrors.name = 'Name must be at least 2 characters';
-        } else if (formData.name.length > 50) {
-            newErrors.name = 'Name must be less than 50 characters';
-        }
-
-        if (formData.avatar && !isValidUrl(formData.avatar)) {
-            newErrors.avatar = 'Please enter a valid URL';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const isValidUrl = (string) => {
-        try {
-            new URL(string);
-            return true;
-        } catch (_) {
-            return false;
-        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (!validateForm()) return;
-
         setLoading(true);
+        setSuccess('');
+        setError('');
+
         try {
-            const result = await updateProfile(formData);
+            const result = await updateProfile({
+                name: formData.name,
+                currency: formData.currency,
+                monthlyBudget: formData.monthlyBudget ? parseFloat(formData.monthlyBudget) : 0
+            });
+
             if (result.success) {
-                toast.success('Profile updated successfully');
+                setSuccess('Profile updated successfully!');
+            } else {
+                setError(result.message);
             }
         } catch (error) {
-            console.error('Profile update error:', error);
+            setError('Failed to update profile');
         } finally {
             setLoading(false);
         }
     };
 
+    const getCurrencySymbol = (code) => {
+        const currency = currencies.find(c => c.code === code);
+        return currency ? currency.symbol : '₹';
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
     return (
-        <div className="container mx-auto px-4 py-8">
-            <div className="max-w-2xl mx-auto">
-                {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-                    <p className="text-gray-600 mt-2">Manage your account settings and profile information</p>
-                </div>
+        <div className="container">
+            <div className="section-header mb-8">
+                <h1 className="text-white">Profile Settings</h1>
+                <div className="section-subtitle">Manage your account preferences and settings</div>
+            </div>
 
-                {/* Profile Form */}
-                <div className="card p-6">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Avatar Section */}
-                        <div className="flex items-center gap-6">
-                            <div className="relative">
-                                <img
-                                    src={formData.avatar || 'https://via.placeholder.com/100'}
-                                    alt="Profile"
-                                    className="w-24 h-24 rounded-full object-cover border-4 border-gray-200"
-                                />
-                                <div className="absolute bottom-0 right-0 p-1 bg-blue-600 rounded-full">
-                                    <FiCamera className="w-4 h-4 text-white" />
+            <div className="grid md:grid-cols-3" style={{ display: 'grid', gridTemplateColumns: 'max-content 1fr', gap: '2rem' }}>
+                {/* Profile Information */}
+                <div className="md:col-span-2">
+                    <div className="card mb-6" style={{ maxWidth: '650px', marginLeft: 'auto', marginRight: 'auto' }}>
+                        <h3 className="text-primary mb-6 text-xl">Account Information</h3>
+
+                        {success && (
+                            <div className="alert alert-success mb-4">
+                                {success}
+                            </div>
+                        )}
+
+                        {error && (
+                            <div className="alert alert-error mb-4">
+                                {error}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSubmit}>
+                            <div className="grid md:grid-cols-2 gap-4" style={{ justifyItems: 'start' }}>
+                                <div className="form-group">
+                                    <label htmlFor="name" className="form-label" style={{ color: '#111' }}>
+                                        <FiUser className="inline mr-2" />
+                                        Full Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="name"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleChange}
+                                        className="form-input"
+                                        required
+                                        style={{ background: '#f3f3f3', color: '#111', border: '1px solid #bbb' }}
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="email" className="form-label" style={{ color: '#111' }}>
+                                        <FiMail className="inline mr-2" />
+                                        Email Address
+                                    </label>
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        value={user?.email || ''}
+                                        className="form-input"
+                                        disabled
+                                        style={{ background: '#f3f3f3', color: '#111', border: '1px solid #bbb' }}
+                                    />
+                                    <small className="text-gray-600">Email cannot be changed</small>
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="currency" className="form-label" style={{ color: '#111' }}>
+                                        <FiDollarSign className="inline mr-2" />
+                                        Currency
+                                    </label>
+                                    <select
+                                        id="currency"
+                                        name="currency"
+                                        value={formData.currency}
+                                        onChange={handleChange}
+                                        className="form-select"
+                                        style={{ background: '#f3f3f3', color: '#111', border: '1px solid #bbb' }}
+                                    >
+                                        {currencies.map(currency => (
+                                            <option key={currency.code} value={currency.code}>
+                                                {currency.code === 'INR' ? 'RPS' : currency.symbol} {currency.name} ({currency.code})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="monthlyBudget" className="form-label" style={{ color: '#111' }}>
+                                        <FiDollarSign className="inline mr-2" />
+                                        Monthly Budget
+                                    </label>
+                                    <div className="input-group">
+                                        <span className="input-prefix" style={{ marginRight: '1rem' }}>{formData.currency === 'INR' ? 'RPS' : getCurrencySymbol(formData.currency)}</span>
+                                        <input
+                                            type="number"
+                                            id="monthlyBudget"
+                                            name="monthlyBudget"
+                                            value={formData.monthlyBudget}
+                                            onChange={handleChange}
+                                            className="form-input"
+                                            style={{ paddingLeft: '3rem', background: '#f3f3f3', color: '#111', border: '1px solid #bbb' }}
+                                            step="0.01"
+                                            min="0"
+                                            placeholder="0.00"
+                                        />
+                                    </div>
+                                    <small className="text-gray-600">
+                                        Set a monthly budget to track your spending goals
+                                    </small>
                                 </div>
                             </div>
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900">{user?.name}</h3>
-                                <p className="text-gray-600">{user?.email}</p>
-                                <p className="text-sm text-gray-500 capitalize">Role: {user?.role}</p>
-                            </div>
-                        </div>
 
-                        {/* Name */}
-                        <div className="form-group">
-                            <label htmlFor="name" className="form-label">
-                                Full Name
-                            </label>
-                            <div className="relative">
-                                <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                <input
-                                    type="text"
-                                    id="name"
-                                    name="name"
-                                    className={`form-input pl-10 ${errors.name ? 'border-red-500' : ''}`}
-                                    placeholder="Enter your full name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                            {errors.name && (
-                                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                            )}
-                        </div>
-
-                        {/* Email (Read-only) */}
-                        <div className="form-group">
-                            <label htmlFor="email" className="form-label">
-                                Email Address
-                            </label>
-                            <div className="relative">
-                                <FiMail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                                <input
-                                    type="email"
-                                    id="email"
-                                    value={user?.email || ''}
-                                    className="form-input pl-10 bg-gray-50 cursor-not-allowed"
-                                    disabled
-                                />
-                            </div>
-                            <p className="mt-1 text-sm text-gray-500">
-                                Email address cannot be changed
-                            </p>
-                        </div>
-
-                        {/* Avatar URL */}
-                        <div className="form-group">
-                            <label htmlFor="avatar" className="form-label">
-                                Profile Picture URL
-                            </label>
-                            <input
-                                type="url"
-                                id="avatar"
-                                name="avatar"
-                                className={`form-input ${errors.avatar ? 'border-red-500' : ''}`}
-                                placeholder="https://example.com/avatar.jpg"
-                                value={formData.avatar}
-                                onChange={handleChange}
-                            />
-                            {errors.avatar && (
-                                <p className="mt-1 text-sm text-red-600">{errors.avatar}</p>
-                            )}
-                            <p className="mt-1 text-sm text-gray-500">
-                                Enter a URL for your profile picture (optional)
-                            </p>
-                        </div>
-
-                        {/* Account Info */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                            <h4 className="font-medium text-gray-900 mb-3">Account Information</h4>
-                            <div className="space-y-2 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Member since:</span>
-                                    <span className="text-gray-900">
-                                        {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Account type:</span>
-                                    <span className="text-gray-900 capitalize">{user?.role || 'User'}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Form Actions */}
-                        <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className={`btn btn-primary flex items-center gap-2 ${loading ? 'btn-loading' : ''}`}
-                            >
-                                {loading ? (
-                                    <>
-                                        <div className="loading-spinner"></div>
-                                        Updating...
-                                    </>
-                                ) : (
-                                    <>
-                                        <FiSave className="w-4 h-4" />
-                                        Update Profile
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                {/* Additional Settings */}
-                <div className="mt-8 space-y-6">
-                    {/* Security Section */}
-                    <div className="card p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Security</h3>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h4 className="font-medium text-gray-900">Password</h4>
-                                    <p className="text-sm text-gray-600">Last changed: Never</p>
-                                </div>
-                                <button className="btn btn-outline btn-sm">
-                                    Change Password
+                            <div className="flex gap-4 mt-6">
+                                <button
+                                    type="submit"
+                                    className="btn btn-primary"
+                                    disabled={loading}
+                                >
+                                    <FiSave />
+                                    {loading ? 'Saving...' : 'Save Changes'}
                                 </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {/* Account Stats */}
+                <div className="space-y-6">
+                    <div className="card">
+                        <h3 className="text-lg font-semibold mb-4">Account Overview</h3>
+                        <div className="space-y-3">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Member since:</span>
+                                <span className="font-medium">
+                                    {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Account status:</span>
+                                <span className="text-green-600 font-medium">Active</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Currency:</span>
+                                <span className="font-medium">{formData.currency}</span>
+                            </div>
+                        </div>
+                        <span className="badge badge-success">Active</span>
+                    </div>
+
+                    <div className="card">
+                        <h3 className="text-lg font-semibold mb-4">Budget Summary</h3>
+                        <div className="space-y-3">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Monthly budget:</span>
+                                <span className="font-medium">
+                                    {formData.monthlyBudget ?
+                                        `RPS ${parseFloat(formData.monthlyBudget).toFixed(2)}` :
+                                        'Not set'
+                                    }
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Current month:</span>
+                                <span className="font-medium">
+                                    {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Preferences Section */}
-                    <div className="card p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Preferences</h3>
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h4 className="font-medium text-gray-900">Email Notifications</h4>
-                                    <p className="text-sm text-gray-600">Receive email updates about your tasks</p>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" className="sr-only peer" defaultChecked />
-                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
+                    <div className="card">
+                        <h3 className="text-lg font-semibold mb-4">Security</h3>
+                        <div className="space-y-3">
+                            <div className="flex items-center text-gray-600">
+                                <FiShield className="mr-2" />
+                                <span>Password protected</span>
+                            </div>
+                            <div className="flex items-center text-gray-600">
+                                <FiShield className="mr-2" />
+                                <span>JWT authentication</span>
+                            </div>
+                            <div className="flex items-center text-gray-600">
+                                <FiShield className="mr-2" />
+                                <span>Secure data storage</span>
                             </div>
                         </div>
                     </div>

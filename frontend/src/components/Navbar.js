@@ -1,47 +1,138 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import {
+    FiHome,
+    FiDollarSign,
+    FiPieChart,
+    FiRepeat,
+    FiUser,
+    FiLogOut,
+    FiMenu,
+    FiX,
+    FiGlobe
+} from 'react-icons/fi';
 
-const navStyle = {
-    background: '#222',
-    color: '#fff',
-    padding: '1rem 2rem',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-};
-const linkStyle = {
-    color: '#00BFFF',
-    textDecoration: 'none',
-    margin: '0 1rem',
-    fontWeight: 'bold',
-    fontSize: '1.1rem',
-};
+const Navbar = ({ onShowCurrencyConverter }) => {
+    const { user, logout } = useAuth();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-const Navbar = () => {
-    const { isAuthenticated } = useAuth();
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
+
+    const navItems = [
+        { path: '/', label: 'Dashboard', icon: FiHome },
+        { path: '/expenses', label: 'Expenses', icon: FiDollarSign },
+        { path: '/categories', label: 'Categories', icon: FiPieChart },
+        { path: '/recurring', label: 'Recurring', icon: FiRepeat },
+        { path: '/profile', label: 'Profile', icon: FiUser },
+        { path: '#', label: 'Convert', icon: FiGlobe, action: onShowCurrencyConverter }
+    ];
+
+    const isActive = (path) => {
+        if (path === '/') {
+            return location.pathname === '/';
+        }
+        return location.pathname.startsWith(path);
+    };
+
+    const handleNavClick = (item) => {
+        if (item.action) {
+            item.action();
+        }
+    };
+
     return (
-        <nav style={navStyle}>
-            <div style={{ fontWeight: 'bold', fontSize: '1.3rem', letterSpacing: '1px' }}>
-                Finance Dashboard
+        <nav className="navbar">
+            <div className="navbar-container">
+                <Link to="/" className="navbar-brand">
+                    Expense Tracker
+                </Link>
+
+                {/* Desktop Navigation */}
+                <div className="navbar-nav desktop-nav">
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={item.path}
+                                to={item.path}
+                                className={`nav-link ${isActive(item.path) ? 'active' : ''}`}
+                                onClick={(e) => {
+                                    if (item.action) {
+                                        e.preventDefault();
+                                        handleNavClick(item);
+                                    }
+                                }}
+                            >
+                                <span className="nav-link-icon">
+                                    <Icon />
+                                    <span className="nav-link-text">{item.label}</span>
+                                </span>
+                            </Link>
+                        );
+                    })}
+                </div>
+
+                {/* User Menu */}
+                <div className="user-menu">
+                    <span className="user-name">{user?.name}</span>
+                    <button onClick={handleLogout} className="btn btn-outline btn-sm">
+                        <FiLogOut />
+                        <span className="nav-link-text">Logout</span>
+                    </button>
+                </div>
+
+                {/* Mobile Menu Button */}
+                <button
+                    className="mobile-menu-btn"
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                >
+                    {isMobileMenuOpen ? <FiX /> : <FiMenu />}
+                </button>
             </div>
-            <div>
-                <Link to="/" style={linkStyle}>Dashboard</Link>
-                <Link to="/transactions" style={linkStyle}>Transactions</Link>
-                <Link to="/budgets" style={linkStyle}>Budgets</Link>
-                <Link to="/moods" style={linkStyle}>Moods</Link>
-                <Link to="/goals" style={linkStyle}>Goals</Link>
-                <Link to="/challenges" style={linkStyle}>Challenges</Link>
-                <Link to="/recurring" style={linkStyle}>Recurring</Link>
-                {!isAuthenticated && (
-                    <>
-                        <Link to="/login" style={linkStyle}>Login</Link>
-                        <Link to="/register" style={linkStyle}>Register</Link>
-                    </>
-                )}
-            </div>
+
+            {/* Mobile Navigation */}
+            {isMobileMenuOpen && (
+                <div className="mobile-nav">
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                            <Link
+                                key={item.path}
+                                to={item.path}
+                                className={`nav-link ${isActive(item.path) ? 'active' : ''}`}
+                                onClick={(e) => {
+                                    setIsMobileMenuOpen(false);
+                                    if (item.action) {
+                                        e.preventDefault();
+                                        handleNavClick(item);
+                                    }
+                                }}
+                            >
+                                <span className="nav-link-icon">
+                                    <Icon />
+                                    <span className="nav-link-text">{item.label}</span>
+                                </span>
+                            </Link>
+                        );
+                    })}
+
+                    <div className="mobile-user-menu">
+                        <span className="user-name">{user?.name}</span>
+                        <button onClick={handleLogout} className="btn btn-outline btn-sm">
+                            <FiLogOut />
+                            <span className="nav-link-text">Logout</span>
+                        </button>
+                    </div>
+                </div>
+            )}
         </nav>
     );
 };
 
-export default Navbar;
+export default Navbar; 

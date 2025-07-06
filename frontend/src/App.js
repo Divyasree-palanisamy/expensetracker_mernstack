@@ -1,80 +1,134 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
-import Dashboard from './pages/Dashboard';
-import Transactions from './pages/Transactions';
-import Budgets from './pages/Budgets';
-import Moods from './pages/Moods';
-import Goals from './pages/Goals';
-import Challenges from './pages/Challenges';
-import Recurring from './pages/Recurring';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import { useAuth } from './contexts/AuthContext';
+import Dashboard from './pages/Dashboard';
+import Expenses from './pages/Expenses';
+import AddExpense from './pages/AddExpense';
+import EditExpense from './pages/EditExpense';
+import Categories from './pages/Categories';
+import Recurring from './pages/Recurring';
+import Profile from './pages/Profile';
+import CurrencyConverter from './components/CurrencyConverter';
+import ExpenseSplitter from './components/ExpenseSplitter';
+import QuickAddWidget from './components/QuickAddWidget';
+import RecurringForecast from './components/RecurringForecast';
 
-// PrivateRoute component to protect routes
+import './App.css';
+
 const PrivateRoute = ({ children }) => {
-    const { isAuthenticated, loading } = useAuth();
-    const location = useLocation();
-    if (loading) return null; // or a loading spinner
-    return isAuthenticated ? children : <Navigate to="/login" state={{ from: location }} replace />;
+    const { isAuthenticated } = useAuth();
+    return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
 const AppContent = () => {
     const { isAuthenticated } = useAuth();
-    const location = useLocation();
-    // Hide navbar on login and register pages
-    const hideNavbar = location.pathname === '/login' || location.pathname === '/register';
+    const [showCurrencyConverter, setShowCurrencyConverter] = useState(false);
+    const [showExpenseSplitter, setShowExpenseSplitter] = useState(false);
+    const [expenses, setExpenses] = useState([]);
+    const [recurringExpenses, setRecurringExpenses] = useState([]);
+
+    const handleAddExpense = (expenseData) => {
+        // This would typically call an API to add the expense
+        console.log('Adding expense:', expenseData);
+        // For now, just add to local state
+        setExpenses(prev => [...prev, { ...expenseData, id: Date.now() }]);
+    };
+
+    const handleSplitComplete = (splitData) => {
+        console.log('Expense split completed:', splitData);
+        // Handle the split expense data
+    };
+
+    const handleShowExpenseSplitter = (suggestionData = null) => {
+        setShowExpenseSplitter(true);
+        // You can pass suggestion data to pre-fill the splitter
+        if (suggestionData) {
+            console.log('Opening splitter with suggestion data:', suggestionData);
+        }
+    };
+
     return (
-        <>
-            {!hideNavbar && isAuthenticated && <Navbar />}
-            <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/" element={
-                    <PrivateRoute>
-                        <Dashboard />
-                    </PrivateRoute>
-                } />
-                <Route path="/transactions" element={
-                    <PrivateRoute>
-                        <Transactions />
-                    </PrivateRoute>
-                } />
-                <Route path="/budgets" element={
-                    <PrivateRoute>
-                        <Budgets />
-                    </PrivateRoute>
-                } />
-                <Route path="/moods" element={
-                    <PrivateRoute>
-                        <Moods />
-                    </PrivateRoute>
-                } />
-                <Route path="/goals" element={
-                    <PrivateRoute>
-                        <Goals />
-                    </PrivateRoute>
-                } />
-                <Route path="/challenges" element={
-                    <PrivateRoute>
-                        <Challenges />
-                    </PrivateRoute>
-                } />
-                <Route path="/recurring" element={
-                    <PrivateRoute>
-                        <Recurring />
-                    </PrivateRoute>
-                } />
-            </Routes>
-        </>
+        <Router>
+            <div className="App">
+                {isAuthenticated && (
+                    <Navbar
+                        onShowCurrencyConverter={() => setShowCurrencyConverter(true)}
+                        onShowExpenseSplitter={() => setShowExpenseSplitter(true)}
+                    />
+                )}
+                <main className="main-content">
+                    <Routes>
+                        <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
+                        <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
+                        <Route path="/" element={
+                            <PrivateRoute>
+                                <Dashboard onShowExpenseSplitter={handleShowExpenseSplitter} />
+                            </PrivateRoute>
+                        } />
+                        <Route path="/expenses" element={
+                            <PrivateRoute>
+                                <Expenses />
+                            </PrivateRoute>
+                        } />
+                        <Route path="/expenses/add" element={
+                            <PrivateRoute>
+                                <AddExpense />
+                            </PrivateRoute>
+                        } />
+                        <Route path="/expenses/edit/:id" element={
+                            <PrivateRoute>
+                                <EditExpense />
+                            </PrivateRoute>
+                        } />
+                        <Route path="/categories" element={
+                            <PrivateRoute>
+                                <Categories />
+                            </PrivateRoute>
+                        } />
+                        <Route path="/recurring" element={
+                            <PrivateRoute>
+                                <Recurring />
+                            </PrivateRoute>
+                        } />
+                        <Route path="/profile" element={
+                            <PrivateRoute>
+                                <Profile />
+                            </PrivateRoute>
+                        } />
+                    </Routes>
+                </main>
+
+                {/* Global Components */}
+                {isAuthenticated && (
+                    <>
+                        <QuickAddWidget onAddExpense={handleAddExpense} />
+
+                        <CurrencyConverter
+                            isOpen={showCurrencyConverter}
+                            onClose={() => setShowCurrencyConverter(false)}
+                        />
+
+                        <ExpenseSplitter
+                            isOpen={showExpenseSplitter}
+                            onClose={() => setShowExpenseSplitter(false)}
+                            onSplitComplete={handleSplitComplete}
+                        />
+                    </>
+                )}
+            </div>
+        </Router>
     );
 };
 
-const App = () => (
-    <Router>
-        <AppContent />
-    </Router>
-);
+function App() {
+    return (
+        <AuthProvider>
+            <AppContent />
+        </AuthProvider>
+    );
+}
 
-export default App;
+export default App; 
