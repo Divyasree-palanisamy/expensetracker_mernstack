@@ -338,21 +338,23 @@ const Recurring = () => {
                         {recurringExpenses.map(expense => (
                             <div
                                 key={expense._id}
-                                className={`p-6 rounded-lg border transition-all hover:shadow-lg ${!expense.isActive ? 'opacity-60' : ''
+                                className={`p-10 rounded-xl border-2 transition-all hover:shadow-xl ${!expense.isActive ? 'opacity-60' : ''
                                     }`}
                                 style={{
-                                    borderColor: expense.isActive ? '#3b82f6' : '#e2e8f0',
-                                    backgroundColor: expense.isActive ? '#f8fafc' : '#f1f5f9'
+                                    borderColor: expense.isActive ? '#1e40af' : '#6b7280',
+                                    backgroundColor: expense.isActive ? '#ffffff' : '#f9fafb',
+                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                                    minHeight: '320px'
                                 }}
                             >
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <h4 className="text-primary font-semibold mb-2">{expense.title}</h4>
-                                        <div className="text-primary text-2xl font-bold mb-2">
+                                <div className="flex justify-between items-start mb-10">
+                                    <div className="flex-1 pr-8">
+                                        <h4 className="text-primary font-semibold mb-6 text-xl">{expense.title}</h4>
+                                        <div className="text-primary text-4xl font-bold mb-6">
                                             RPS {expense.amount.toFixed(2)}
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-4 flex-shrink-0">
                                         <button
                                             onClick={() => handleToggleActive(expense)}
                                             className={`btn-icon${expense.isActive ? '' : ' btn-success'}`}
@@ -377,34 +379,34 @@ const Recurring = () => {
                                     </div>
                                 </div>
 
-                                <div className="space-y-2 mb-4">
-                                    <div className="flex items-center text-secondary text-sm">
-                                        <FiRepeat className="mr-2" />
-                                        {expense.frequency.charAt(0).toUpperCase() + expense.frequency.slice(1)}
+                                <div className="space-y-6 mb-10">
+                                    <div className="flex items-center text-secondary text-base">
+                                        <FiRepeat className="mr-5 text-primary text-lg" />
+                                        <span className="font-semibold">{expense.frequency.charAt(0).toUpperCase() + expense.frequency.slice(1)}</span>
                                     </div>
-                                    <div className="flex items-center text-secondary text-sm">
-                                        <FiCalendar className="mr-2" />
-                                        Next: {getNextDueDate(expense)}
+                                    <div className="flex items-center text-secondary text-base">
+                                        <FiCalendar className="mr-5 text-primary text-lg" />
+                                        <span className="font-semibold">Next: {getNextDueDate(expense)}</span>
                                         {isOverdue(expense) && (
-                                            <span className="badge badge-danger ml-2">Overdue</span>
+                                            <span className="badge badge-danger ml-5">Overdue</span>
                                         )}
                                     </div>
-                                    <div className="flex items-center text-secondary text-sm">
-                                        <FiDollarSign className="mr-2" />
-                                        {expense.paymentMethod}
+                                    <div className="flex items-center text-secondary text-base">
+                                        <FiDollarSign className="mr-5 text-primary text-lg" />
+                                        <span className="font-semibold">{expense.paymentMethod}</span>
                                     </div>
                                 </div>
 
                                 {expense.description && (
-                                    <p className="text-secondary text-sm mb-4">{expense.description}</p>
+                                    <p className="text-secondary text-base mb-10 leading-relaxed font-medium">{expense.description}</p>
                                 )}
 
                                 {expense.tags && expense.tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-1 mb-4">
+                                    <div className="flex flex-wrap gap-4 mb-10">
                                         {expense.tags.map((tag, index) => (
                                             <span
                                                 key={index}
-                                                className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                                                className="px-5 py-3 bg-blue-100 text-blue-800 text-sm rounded-full font-semibold"
                                             >
                                                 {tag}
                                             </span>
@@ -412,7 +414,7 @@ const Recurring = () => {
                                     </div>
                                 )}
 
-                                <div className="btn-group">
+                                <div className="btn-group mt-auto">
                                     <button
                                         onClick={() => handleAdvance(expense._id)}
                                         className="btn-icon"
