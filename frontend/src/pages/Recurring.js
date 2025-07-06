@@ -338,23 +338,14 @@ const Recurring = () => {
                         {recurringExpenses.map(expense => (
                             <div
                                 key={expense._id}
-                                className={`p-10 rounded-xl border-2 transition-all hover:shadow-xl ${!expense.isActive ? 'opacity-60' : ''
-                                    }`}
-                                style={{
-                                    borderColor: expense.isActive ? '#1e40af' : '#6b7280',
-                                    backgroundColor: expense.isActive ? '#ffffff' : '#f9fafb',
-                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                                    minHeight: '320px'
-                                }}
+                                className={`recurring-card${!expense.isActive ? ' opacity-60' : ''}`}
                             >
-                                <div className="flex justify-between items-start mb-10">
-                                    <div className="flex-1 pr-8">
-                                        <h4 className="text-primary font-semibold mb-6 text-xl">{expense.title}</h4>
-                                        <div className="text-primary text-4xl font-bold mb-6">
-                                            RPS {expense.amount.toFixed(2)}
-                                        </div>
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex-1 pr-4">
+                                        <h4 className="recurring-title">{expense.title}</h4>
+                                        <div className="recurring-amount">RPS {expense.amount.toFixed(2)}</div>
                                     </div>
-                                    <div className="flex gap-4 flex-shrink-0">
+                                    <div className="recurring-actions">
                                         <button
                                             onClick={() => handleToggleActive(expense)}
                                             className={`btn-icon${expense.isActive ? '' : ' btn-success'}`}
@@ -379,42 +370,39 @@ const Recurring = () => {
                                     </div>
                                 </div>
 
-                                <div className="space-y-6 mb-10">
-                                    <div className="flex items-center text-secondary text-base">
-                                        <FiRepeat className="mr-5 text-primary text-lg" />
+                                <div className="recurring-section">
+                                    <div className="recurring-meta">
+                                        <FiRepeat className="mr-2 text-primary text-lg" />
                                         <span className="font-semibold">{expense.frequency.charAt(0).toUpperCase() + expense.frequency.slice(1)}</span>
                                     </div>
-                                    <div className="flex items-center text-secondary text-base">
-                                        <FiCalendar className="mr-5 text-primary text-lg" />
+                                    <div className="recurring-meta">
+                                        <FiCalendar className="mr-2 text-primary text-lg" />
                                         <span className="font-semibold">Next: {getNextDueDate(expense)}</span>
                                         {isOverdue(expense) && (
-                                            <span className="badge badge-danger ml-5">Overdue</span>
+                                            <span className="badge badge-danger ml-2">Overdue</span>
                                         )}
                                     </div>
-                                    <div className="flex items-center text-secondary text-base">
-                                        <FiDollarSign className="mr-5 text-primary text-lg" />
+                                    <div className="recurring-meta">
+                                        <FiDollarSign className="mr-2 text-primary text-lg" />
                                         <span className="font-semibold">{expense.paymentMethod}</span>
                                     </div>
                                 </div>
 
-                                {expense.description && (
-                                    <p className="text-secondary text-base mb-10 leading-relaxed font-medium">{expense.description}</p>
-                                )}
-
                                 {expense.tags && expense.tags.length > 0 && (
-                                    <div className="flex flex-wrap gap-4 mb-10">
+                                    <div className="recurring-tags">
                                         {expense.tags.map((tag, index) => (
-                                            <span
-                                                key={index}
-                                                className="px-5 py-3 bg-blue-100 text-blue-800 text-sm rounded-full font-semibold"
-                                            >
-                                                {tag}
-                                            </span>
+                                            <span key={index} className="recurring-tag">{tag}</span>
                                         ))}
                                     </div>
                                 )}
 
-                                <div className="btn-group mt-auto">
+                                {expense.description && (
+                                    <div className="recurring-description">
+                                        {expense.description}
+                                    </div>
+                                )}
+
+                                <div className="recurring-bottom">
                                     <button
                                         onClick={() => handleAdvance(expense._id)}
                                         className="btn-icon"
