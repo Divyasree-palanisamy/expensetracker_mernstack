@@ -10,6 +10,7 @@ import AddExpense from './pages/AddExpense';
 import EditExpense from './pages/EditExpense';
 import Categories from './pages/Categories';
 import Recurring from './pages/Recurring';
+import Wellness from './pages/Wellness';
 import Profile from './pages/Profile';
 import CurrencyConverter from './components/CurrencyConverter';
 import ExpenseSplitter from './components/ExpenseSplitter';
@@ -91,6 +92,11 @@ const AppContent = () => {
                         <Route path="/recurring" element={
                             <PrivateRoute>
                                 <Recurring />
+                            </PrivateRoute>
+                        } />
+                        <Route path="/wellness" element={
+                            <PrivateRoute>
+                                <Wellness />
                             </PrivateRoute>
                         } />
                         <Route path="/profile" element={

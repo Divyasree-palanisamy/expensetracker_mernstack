@@ -10,7 +10,7 @@ const router = express.Router();
 // @access  Private
 router.get('/', auth, async (req, res) => {
     try {
-        const { page = 1, limit = 10, category, startDate, endDate, sortBy = 'date', sortOrder = 'desc' } = req.query;
+        const { page = 1, limit = 10, category, startDate, endDate, sortBy = 'date', sortOrder = 'desc', period } = req.query;
 
         const query = { user: req.user._id };
 
@@ -19,6 +19,29 @@ router.get('/', auth, async (req, res) => {
             query.date = {};
             if (startDate) query.date.$gte = new Date(startDate);
             if (endDate) query.date.$lte = new Date(endDate);
+        }
+
+        // Handle period filtering for wellness insights
+        if (period) {
+            const now = new Date();
+            let startDate;
+            switch (period) {
+                case 'week':
+                    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    break;
+                case 'month':
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+                    break;
+                case 'quarter':
+                    startDate = new Date(now.getFullYear(), Math.floor(now.getMonth() / 3) * 3, 1);
+                    break;
+                case 'year':
+                    startDate = new Date(now.getFullYear(), 0, 1);
+                    break;
+                default:
+                    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            }
+            query.date = { $gte: startDate };
         }
 
         const sortOptions = {};
@@ -51,7 +74,10 @@ router.post('/', [
     auth,
     body('title', 'Title is required').not().isEmpty(),
     body('amount', 'Amount must be a positive number').isFloat({ min: 0 }),
-    body('category', 'Category is required').isIn(['Food', 'Transport', 'Entertainment', 'Shopping', 'Bills', 'Healthcare', 'Education', 'Travel', 'Other'])
+    body('category', 'Category is required').isIn(['Food', 'Transport', 'Entertainment', 'Shopping', 'Bills', 'Healthcare', 'Education', 'Travel', 'Other']),
+    body('mood').optional().isIn(['happy', 'sad', 'stressed', 'excited', 'neutral', 'anxious', 'content', 'frustrated']),
+    body('emotionalSpending').optional().isBoolean(),
+    body('wellnessNote').optional().isString()
 ], async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -69,7 +95,10 @@ router.post('/', [
             isRecurring,
             recurringType,
             tags,
-            location
+            location,
+            mood,
+            emotionalSpending,
+            wellnessNote
         } = req.body;
 
         const expense = new Expense({
@@ -83,7 +112,10 @@ router.post('/', [
             isRecurring: isRecurring || false,
             recurringType: recurringType || 'monthly',
             tags: tags || [],
-            location: location || ''
+            location: location || '',
+            mood: mood || 'neutral',
+            emotionalSpending: emotionalSpending || false,
+            wellnessNote: wellnessNote || ''
         });
 
         await expense.save();
@@ -101,7 +133,10 @@ router.put('/:id', [
     auth,
     body('title', 'Title is required').not().isEmpty(),
     body('amount', 'Amount must be a positive number').isFloat({ min: 0 }),
-    body('category', 'Category is required').isIn(['Food', 'Transport', 'Entertainment', 'Shopping', 'Bills', 'Healthcare', 'Education', 'Travel', 'Other'])
+    body('category', 'Category is required').isIn(['Food', 'Transport', 'Entertainment', 'Shopping', 'Bills', 'Healthcare', 'Education', 'Travel', 'Other']),
+    body('mood').optional().isIn(['happy', 'sad', 'stressed', 'excited', 'neutral', 'anxious', 'content', 'frustrated']),
+    body('emotionalSpending').optional().isBoolean(),
+    body('wellnessNote').optional().isString()
 ], async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -128,7 +163,10 @@ router.put('/:id', [
             isRecurring,
             recurringType,
             tags,
-            location
+            location,
+            mood,
+            emotionalSpending,
+            wellnessNote
         } = req.body;
 
         expense.title = title;
@@ -141,6 +179,9 @@ router.put('/:id', [
         expense.recurringType = recurringType || expense.recurringType;
         expense.tags = tags || [];
         expense.location = location || '';
+        expense.mood = mood || expense.mood;
+        expense.emotionalSpending = emotionalSpending !== undefined ? emotionalSpending : expense.emotionalSpending;
+        expense.wellnessNote = wellnessNote || expense.wellnessNote;
 
         await expense.save();
         res.json(expense);
@@ -203,13 +244,26 @@ router.get('/summary', auth, async (req, res) => {
             return acc;
         }, {});
 
+        // Add wellness insights to summary
+        const moodTotals = expenses.reduce((acc, expense) => {
+            const mood = expense.mood || 'neutral';
+            acc[mood] = (acc[mood] || 0) + expense.amount;
+            return acc;
+        }, {});
+
+        const emotionalSpendingCount = expenses.filter(expense => expense.emotionalSpending).length;
+        const emotionalSpendingTotal = expenses
+            .filter(expense => expense.emotionalSpending)
+            .reduce((sum, expense) => sum + expense.amount, 0);
+
         res.json({
             totalAmount,
             categoryTotals,
             dailyTotals,
-            expenseCount: expenses.length,
-            month: targetMonth,
-            year: targetYear
+            moodTotals,
+            emotionalSpendingCount,
+            emotionalSpendingTotal,
+            emotionalSpendingPercentage: totalAmount > 0 ? (emotionalSpendingTotal / totalAmount) * 100 : 0
         });
     } catch (error) {
         console.error('Get summary error:', error);

@@ -56,6 +56,21 @@ const expenseSchema = new mongoose.Schema({
     receipt: {
         type: String,
         default: ''
+    },
+    // Mental Health & Wellness Fields
+    mood: {
+        type: String,
+        enum: ['happy', 'sad', 'stressed', 'excited', 'neutral', 'anxious', 'content', 'frustrated'],
+        default: 'neutral'
+    },
+    emotionalSpending: {
+        type: Boolean,
+        default: false
+    },
+    wellnessNote: {
+        type: String,
+        trim: true,
+        default: ''
     }
 }, {
     timestamps: true
@@ -64,5 +79,6 @@ const expenseSchema = new mongoose.Schema({
 // Index for better query performance
 expenseSchema.index({ user: 1, date: -1 });
 expenseSchema.index({ user: 1, category: 1 });
+expenseSchema.index({ user: 1, mood: 1 }); // New index for mood tracking
 
 module.exports = mongoose.model('Expense', expenseSchema); 

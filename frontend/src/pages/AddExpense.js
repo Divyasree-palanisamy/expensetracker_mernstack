@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FiSave, FiX, FiDollarSign, FiTag, FiCalendar, FiMapPin, FiFileText } from 'react-icons/fi';
+import { FiSave, FiX, FiDollarSign, FiTag, FiCalendar, FiMapPin, FiFileText, FiHeart, FiSmile } from 'react-icons/fi';
 
 const AddExpense = () => {
     const navigate = useNavigate();
@@ -15,7 +15,11 @@ const AddExpense = () => {
         location: '',
         tags: '',
         isRecurring: false,
-        recurringType: 'monthly'
+        recurringType: 'monthly',
+        // Mental Health & Wellness Fields
+        mood: 'neutral',
+        emotionalSpending: false,
+        wellnessNote: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -34,6 +38,17 @@ const AddExpense = () => {
         { value: 'weekly', label: 'Weekly' },
         { value: 'monthly', label: 'Monthly' },
         { value: 'yearly', label: 'Yearly' }
+    ];
+
+    const moods = [
+        { value: 'happy', label: '😊 Happy', emoji: '😊' },
+        { value: 'sad', label: '😢 Sad', emoji: '😢' },
+        { value: 'stressed', label: '😰 Stressed', emoji: '😰' },
+        { value: 'excited', label: '🤩 Excited', emoji: '🤩' },
+        { value: 'neutral', label: '😐 Neutral', emoji: '😐' },
+        { value: 'anxious', label: '😨 Anxious', emoji: '😨' },
+        { value: 'content', label: '😌 Content', emoji: '😌' },
+        { value: 'frustrated', label: '😤 Frustrated', emoji: '😤' }
     ];
 
     const handleChange = (e) => {
@@ -183,6 +198,64 @@ const AddExpense = () => {
                                 onChange={handleChange}
                                 className="form-input"
                                 placeholder="e.g., Walmart, Downtown"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Mental Health & Wellness Section */}
+                    <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <FiHeart className="mr-2 text-red-500" />
+                            How are you feeling?
+                        </h3>
+
+                        <div className="grid md:grid-cols-2 gap-4">
+                            <div className="form-group">
+                                <label htmlFor="mood" className="form-label">
+                                    <FiSmile className="inline mr-2" />
+                                    Your Mood
+                                </label>
+                                <select
+                                    id="mood"
+                                    name="mood"
+                                    value={formData.mood}
+                                    onChange={handleChange}
+                                    className="form-select"
+                                >
+                                    {moods.map(mood => (
+                                        <option key={mood.value} value={mood.value}>
+                                            {mood.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label className="form-label">
+                                    <input
+                                        type="checkbox"
+                                        name="emotionalSpending"
+                                        checked={formData.emotionalSpending}
+                                        onChange={handleChange}
+                                        className="mr-2"
+                                    />
+                                    This was an emotional purchase
+                                </label>
+                            </div>
+                        </div>
+
+                        <div className="form-group mt-4">
+                            <label htmlFor="wellnessNote" className="form-label">
+                                Wellness Note (Optional)
+                            </label>
+                            <textarea
+                                id="wellnessNote"
+                                name="wellnessNote"
+                                value={formData.wellnessNote}
+                                onChange={handleChange}
+                                className="form-input"
+                                rows="2"
+                                placeholder="How are you feeling about this purchase? Any thoughts on your spending habits?"
                             />
                         </div>
                     </div>
