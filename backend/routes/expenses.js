@@ -263,7 +263,8 @@ router.get('/summary', auth, async (req, res) => {
             moodTotals,
             emotionalSpendingCount,
             emotionalSpendingTotal,
-            emotionalSpendingPercentage: totalAmount > 0 ? (emotionalSpendingTotal / totalAmount) * 100 : 0
+            emotionalSpendingPercentage: totalAmount > 0 ? (emotionalSpendingTotal / totalAmount) * 100 : 0,
+            expenseCount: expenses.length
         });
     } catch (error) {
         console.error('Get summary error:', error);

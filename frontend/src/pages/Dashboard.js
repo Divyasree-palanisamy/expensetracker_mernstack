@@ -145,12 +145,12 @@ const Dashboard = ({ onShowExpenseSplitter }) => {
                     <div className="stat-label">Total Expenses</div>
                 </div>
                 <div className="stat-card">
-                    <div className="stat-value">{summary?.expenseCount || 0}</div>
+                    <div className="stat-value">{typeof summary?.expenseCount === 'number' ? summary.expenseCount : (summary?.expenses?.length || 0)}</div>
                     <div className="stat-label">Total Transactions</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-value">
-                        RPS {summary?.totalAmount ? (summary.totalAmount / summary.expenseCount).toFixed(2) : '0.00'}
+                        RPS {summary?.totalAmount && ((typeof summary?.expenseCount === 'number' ? summary.expenseCount : (summary?.expenses?.length || 0)) > 0) ? (summary.totalAmount / (typeof summary?.expenseCount === 'number' ? summary.expenseCount : (summary?.expenses?.length || 0))).toFixed(2) : '0.00'}
                     </div>
                     <div className="stat-label">Average per Transaction</div>
                 </div>

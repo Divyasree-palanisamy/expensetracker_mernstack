@@ -10,10 +10,8 @@ import AddExpense from './pages/AddExpense';
 import EditExpense from './pages/EditExpense';
 import Categories from './pages/Categories';
 import Recurring from './pages/Recurring';
-import Wellness from './pages/Wellness';
 import Profile from './pages/Profile';
 import CurrencyConverter from './components/CurrencyConverter';
-import ExpenseSplitter from './components/ExpenseSplitter';
 import QuickAddWidget from './components/QuickAddWidget';
 import RecurringForecast from './components/RecurringForecast';
 
@@ -94,11 +92,6 @@ const AppContent = () => {
                                 <Recurring />
                             </PrivateRoute>
                         } />
-                        <Route path="/wellness" element={
-                            <PrivateRoute>
-                                <Wellness />
-                            </PrivateRoute>
-                        } />
                         <Route path="/profile" element={
                             <PrivateRoute>
                                 <Profile />
@@ -115,12 +108,6 @@ const AppContent = () => {
                         <CurrencyConverter
                             isOpen={showCurrencyConverter}
                             onClose={() => setShowCurrencyConverter(false)}
-                        />
-
-                        <ExpenseSplitter
-                            isOpen={showExpenseSplitter}
-                            onClose={() => setShowExpenseSplitter(false)}
-                            onSplitComplete={handleSplitComplete}
                         />
                     </>
                 )}

@@ -30,7 +30,6 @@ const Navbar = ({ onShowCurrencyConverter }) => {
         { path: '/expenses', label: 'Expenses', icon: FiDollarSign },
         { path: '/categories', label: 'Categories', icon: FiPieChart },
         { path: '/recurring', label: 'Recurring', icon: FiRepeat },
-        { path: '/wellness', label: 'Wellness', icon: FiHeart },
         { path: '/profile', label: 'Profile', icon: FiUser },
         { path: '#', label: 'Convert', icon: FiGlobe, action: onShowCurrencyConverter }
     ];
